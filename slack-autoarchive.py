@@ -1,10 +1,13 @@
 #!/usr/local/bin/python
 
-from datetime import timedelta, datetime
 import os
-import requests
 import sys
 import time
+from argparse import ArgumentParser
+from datetime import datetime, timedelta
+import logging
+
+import requests
 
 #
 # This will archive inactive channels. The inactive period is in days as 'DAYS_INACTIVE'
@@ -175,9 +178,21 @@ def archive_inactive_channels(channels):
     send_channel_message(ADMIN_CHANNEL, admin_msg)
 
 
-if DRY_RUN:
-  print('THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
-all_unarchived_channels = get_all_channels()
-non_exempt_channels     = filter_out_exempt_channels(all_unarchived_channels)
-channels_to_archive     = get_inactive_channels(non_exempt_channels, TOO_OLD_DATETIME)
-archive_inactive_channels(channels_to_archive)
+if __name__ == "__main__":
+  parser = ArgumentParser()
+  parser.add_argument("-t", "--slack-token", required=True)
+  parser.add_argument("-v", "--verbose", required=False, action="store_true")
+  parser.add_argument("-d", "--dry-run", required=False, choices=["True", "False"], default="False")
+  args = parser.parse_args()
+  if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
+  else:
+    logging.basicConfig(level=logging.WARNING)
+  SLACK_TOKEN = args.slack_token
+  DRY_RUN = args.dry_run
+  if DRY_RUN:
+    print('THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
+  all_unarchived_channels = get_all_channels()
+  non_exempt_channels     = filter_out_exempt_channels(all_unarchived_channels)
+  channels_to_archive     = get_inactive_channels(non_exempt_channels, TOO_OLD_DATETIME)
+  archive_inactive_channels(channels_to_archive)
