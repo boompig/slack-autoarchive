@@ -26,7 +26,7 @@ SKIP_SUBTYPES      = {'channel_leave', 'channel_join'}  # 'bot_message'
 
 
 # api_endpoint is a string, and payload is a dict
-def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
+def slack_api_https(api_endpoint=None, payload=None, method="GET", retry=True):
   global THROTTLE_REQUESTS
 
   uri = 'https://slack.com/api/' + api_endpoint
@@ -51,7 +51,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       retry_timeout = 1.2 * float(response.headers['Retry-After'])
       print('Rate-limited. Retrying after ' + str(retry_timeout) + 'ms')
       time.sleep(retry_timeout)
-      return slack_api_http(api_endpoint, payload, method, False)
+      return slack_api_https(api_endpoint, payload, method, False)
     else:
       raise response.raise_for_status()
   except Exception as e:
@@ -62,7 +62,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
 def get_all_channels():
   payload  = {'exclude_archived': 1}
   api_endpoint = 'channels.list'
-  channels = slack_api_http(api_endpoint=api_endpoint, payload=payload)['channels']
+  channels = slack_api_https(api_endpoint=api_endpoint, payload=payload)['channels']
   all_channels = []
   for channel in channels:
     all_channels.append({'id': channel['id'], 'name': channel['name'], 'created': channel['created'], 'num_members': channel['num_members']})
@@ -105,7 +105,7 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
       inactive_channels.append(channel)
     else:
       payload['channel'] = channel['id']
-      channel_history = slack_api_http(api_endpoint=api_endpoint, payload=payload)
+      channel_history = slack_api_https(api_endpoint=api_endpoint, payload=payload)
       (last_message_datetime, is_user) = get_last_message_timestamp(channel_history, datetime.fromtimestamp(float(channel['created'])))
       # mark inactive if last message is too old, but don't
       # if there have been bot messages and the channel has
@@ -144,7 +144,7 @@ def filter_out_exempt_channels(all_unarchived_channels):
 def send_channel_message(channel_id, message):
   payload  = {'channel': channel_id, 'username': 'channel_reaper', 'icon_emoji': ':ghost:', 'text': message}
   api_endpoint = 'chat.postMessage'
-  slack_api_http(api_endpoint=api_endpoint, payload=payload, method="POST")
+  slack_api_https(api_endpoint=api_endpoint, payload=payload, method="POST")
 
 
 def write_log_entry(file_name, entry):
@@ -163,7 +163,7 @@ def archive_inactive_channels(channels):
       send_channel_message(channel['id'], channel_message)
       payload        = {'channel': channel['id']}
       log_message    = str(datetime.now()) + ' ' + stdout_message
-      slack_api_http(api_endpoint=api_endpoint, payload=payload)
+      slack_api_https(api_endpoint=api_endpoint, payload=payload)
       write_log_entry(AUDIT_LOG, log_message)
 
     print(stdout_message)
