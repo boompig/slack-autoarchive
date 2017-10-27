@@ -20,8 +20,10 @@ DAYS_INACTIVE      = int(os.getenv('DAYS_INACTIVE', 60))
 # set MIN_MEMBERS and any channels larger than this in people
 # are exempt from archiving. 0 is no limit.
 MIN_MEMBERS        = os.getenv('MIN_MEMBERS', 0)
-DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
-SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
+# this is not set via environment variable
+DRY_RUN            = None
+# this is not set via environment variable
+SLACK_TOKEN        = None
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
 WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
 THROTTLE_REQUESTS  = False
